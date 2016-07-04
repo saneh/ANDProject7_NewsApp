@@ -1,10 +1,14 @@
 package in.lemonco.newsapp;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import org.json.JSONArray;
@@ -15,7 +19,8 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements NewsApiRequest.AsyncResponse {
     private ArrayList<News> mNews;
-    private static final String SEARCH_QUERY ="Entreprenuership";
+    private static final String SEARCH_QUERY ="artificial intelligence";
+    private ListView mListView;
 
 
     @Override
@@ -27,31 +32,43 @@ public class MainActivity extends AppCompatActivity implements NewsApiRequest.As
         newsApiRequest.delegate =this; //to set delegate/listener back to this class
         newsApiRequest.execute(SEARCH_QUERY);
 
+
+
     }
 
     //this methods is call in onPostExecute() method of AsyncTask ( GoogleBooksApiRequest)
     public void processFinish(JSONObject jsonObject){
         try {
             mNews=new ArrayList<News>();
-            JSONArray jArray = jsonObject.getJSONArray("results");
+            JSONArray jArray = jsonObject.getJSONObject("response").getJSONArray("results");
             for(int i = 0; i < jArray.length(); i++){
+                String webUrl = jArray.getJSONObject(i).optString("webUrl");
                 JSONObject fields = jArray.getJSONObject(i).getJSONObject("fields");
-                String webUrl = jArray.getJSONObject(i).getString("webUrl");
-                String headline = fields.getString("headline");
-                String thumbnail = fields.getString("thumbnail");
-                JSONArray contributors = fields.getJSONArray("tags");
-                ArrayList<String> reporters= new ArrayList<String>();  //List of contributors or reporters
-                for(int j =0; j< contributors.length(); j++){
-                    JSONObject tags = contributors.getJSONObject(j);
-                    reporters.add(tags.getString("webTitle"));
+                String headline = fields.optString("headline");
+                String thumbnail = fields.optString("thumbnail");
+                JSONArray tags = jArray.getJSONObject(i).getJSONArray("tags");
+                ArrayList<String> contributor_list=new ArrayList<>();
+                for(int j =0; j< tags.length(); j++){
+                    String contributor = tags.getJSONObject(j).optString("webTitle");
+                    contributor_list.add(contributor);
                 }
-                mNews.add(new News(headline,reporters,thumbnail,webUrl));
+                mNews.add(new News(headline,contributor_list,thumbnail,webUrl));
             }
             //set listview adapter
-            ListView listView = (ListView)findViewById(R.id.main_news_list);
+            mListView = (ListView)findViewById(R.id.main_news_list);
             NewsAdapter newsAdapter = new NewsAdapter(this,mNews);
 
-            listView.setAdapter(newsAdapter);
+            mListView.setAdapter(newsAdapter);
+
+            mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    String url = mNews.get(position).getMwebUrl();
+                    Intent intent = new Intent(Intent.ACTION_VIEW);
+                    intent.setData(Uri.parse(url));
+                    startActivity(intent);
+                }
+            });
 
         }catch(JSONException e)
         {

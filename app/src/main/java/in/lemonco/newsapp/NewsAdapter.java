@@ -17,7 +17,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 /**
- * Custom arrayadapter for News objects
+ * Custom arrayadapter for News objects. All images are downloaded in a separate AsyncTask
  */
 public class NewsAdapter extends ArrayAdapter<News>{
     private static final String LOG_TAG = NewsAdapter.class.getSimpleName();

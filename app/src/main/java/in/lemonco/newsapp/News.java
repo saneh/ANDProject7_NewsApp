@@ -3,7 +3,7 @@ package in.lemonco.newsapp;
 import java.util.ArrayList;
 
 /**
- * Created by sanehyadav1 on 7/4/16.
+ * Class define the News class.
  */
 public class News {
     private String mwebUrl;
